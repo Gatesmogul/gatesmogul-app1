@@ -1,46 +1,24 @@
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { Tabs } from "expo-router";
+import { Stack } from "expo-router";
+import { SQLiteProvider, type SQLiteDatabase } from "expo-sqlite";
 
-export default function TabLayout() {
+export default function RootLayout() {
   return (
-    <Tabs screenOptions={{ headerShown: false }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: "Default",
-          tabBarIcon: ({ color }) => (
-            <MaterialIcons size={28} name="home" color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: "Profile",
-          tabBarIcon: ({ color }) => (
-            <MaterialIcons size={28} name="person" color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="sensor"
-        options={{
-          title: "Sensor",
-          tabBarIcon: ({ color }) => (
-            <MaterialIcons size={28} name="safety-check" color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="users"
-        options={{
-          title: "Users",
-          tabBarIcon: ({ color }) => (
-            <MaterialIcons size={28} name="people" color={color} />
-          ),
-        }}
-      />
-      {/* <!-- Add more tabs here --> */}
-    </Tabs>
+    <SQLiteProvider databaseName="test.db" onInit={migrateDbIfNeeded}>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="about" />
+      </Stack>
+    </SQLiteProvider>
   );
+}
+
+async function migrateDbIfNeeded(db: SQLiteDatabase) {
+  const DATABASE_VERSION = 1;
+
+  await db.execAsync(`
+PRAGMA journal_mode = 'wal';
+CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, email TEXT);
+`);
+
+  await db.execAsync(`PRAGMA user_version = ${DATABASE_VERSION}`);
 }
